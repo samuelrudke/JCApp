@@ -1,0 +1,19 @@
+# Ambientes virtuais
+venv/
+.venv/
+
+# Cache do Python
+__pycache__/
+*.pyc
+
+# Segurança e dados sensíveis (RNF02)
+.env
+*.env
+
+# Configurações de IDE
+.vscode/
+.idea/
+
+# Bancos de dados locais
+*.db
+*.sqlite3
