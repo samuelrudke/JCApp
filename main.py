@@ -1,17 +1,24 @@
 from fastapi import FastAPI, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel  # <-- ESTA LINHA É A QUE FALTAVA OU ESTAVA INCOMPLETA
 from typing import Optional
 from sqlalchemy.orm import Session
 from datetime import datetime
 import models
 from database import engine, get_db
 
-models.Base.metadata.create_all(bind=engine)
-
 app = FastAPI(
     title="JCApp API",
     description="API para cálculo de montagem de móveis e gestão para MEI",
     version="0.2.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Constante de limite do MEI (R$ 81.000,00 por ano)
@@ -23,7 +30,7 @@ class OrcamentoRequest(BaseModel):
     quantidade_pecas: int
     complexidade: str  
     valor_base_hora: float
-
+    
 class StatusUpdate(BaseModel):
     status: str  # "Pendente" ou "Faturado"
 

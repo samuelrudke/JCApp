@@ -1,0 +1,10 @@
+{
+  "description": "Apresenta uma interface mobile interativa com menus simples e intuitivos, facilitando a navegação e o acesso rápido às principais opções.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
