@@ -32,5 +32,19 @@ export const api = {
       throw new Error(errDetail.detail || 'Erro ao salvar no servidor');
     }
     return res.json();
+  },
+
+  // ADICIONE ESTA FUNÇÃO AQUI:
+  async atualizarStatus(id: number, novoStatus: string) {
+    const res = await fetch(`${API_BASE}/orcamentos/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: novoStatus }),
+    });
+    if (!res.ok) {
+      const errDetail = await res.json().catch(() => ({}));
+      throw new Error(errDetail.detail || 'Erro ao atualizar status');
+    }
+    return res.json();
   }
 };

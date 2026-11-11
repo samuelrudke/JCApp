@@ -199,6 +199,26 @@ export default function App() {
     }
   }
 
+  // Função para alternar o status do orçamento (Pendente <-> Faturado)
+  async function toggleStatus(id: number, currentStatus: Status) {
+    const newStatus: Status = currentStatus === 'Pendente' ? 'Faturado' : 'Pendente'
+    try {
+      await api.atualizarStatus(id, newStatus)
+      showToast(`Status alterado para ${newStatus}`)
+      
+      // Atualiza o estado local do React instantaneamente
+      setHistory(prev =>
+        prev.map(item => (item.id === id ? { ...item, status: newStatus } : item))
+      )
+      
+      // Recarrega o resumo do mês para atualizar os totais do MEI
+      await fetchHistoryAndTotal()
+    } catch (err: any) {
+      showToast(err.message || 'Erro ao atualizar status')
+      console.error(err)
+    }
+  }
+
   function sendWhatsApp() {
     const cleanPhone = phone.replace(/\D/g, '')
     window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener')
@@ -221,7 +241,7 @@ export default function App() {
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
 
-      <section className="phone" aria-label="Aplicativo MontaFácil">
+      <section className="phone" aria-label="Aplicativo JCApp">
         <header className="topbar">
           {screen === 'result' ? (
             <button className="icon-button" onClick={() => setScreen('calculator')} aria-label="Voltar">
@@ -397,7 +417,12 @@ export default function App() {
                         <p>{item.service}</p>
                         <div className="quote-meta">
                           <span><Icon name="calendar" size={14} /> {item.date}</span>
-                          <span className={`status ${item.status.toLowerCase()}`}>
+                          <span 
+                            className={`status ${item.status.toLowerCase()}`}
+                            onClick={() => toggleStatus(item.id, item.status)}
+                            style={{ cursor: 'pointer' }}
+                            title="Clique para alternar o status"
+                          >
                             {item.status === 'Faturado' ? <Icon name="check" size={13} /> : <Icon name="clock" size={13} />}
                             {item.status}
                           </span>
