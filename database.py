@@ -19,3 +19,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# --- A CORREÇÃO DE RAIZ ---
+# Importa os modelos para que o Base.metadata saiba que eles existem
+import models

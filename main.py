@@ -1,17 +1,20 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel  # <-- ESTA LINHA É A QUE FALTAVA OU ESTAVA INCOMPLETA
+from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy.orm import Session
 from datetime import datetime
 import models
-from database import engine, get_db
+from database import engine, get_db, Base  # <-- Importa o Base aqui também
 
 app = FastAPI(
     title="JCApp API",
     description="API para cálculo de montagem de móveis e gestão para MEI",
     version="0.2.0"
 )
+
+# --- GARANTE A CRIAÇÃO DAS TABELAS NO ARRANQUE ---
+Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,7 +23,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # Constante de limite do MEI (R$ 81.000,00 por ano)
 LIMITE_ANUAL_MEI = 81000.0
 
