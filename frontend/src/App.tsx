@@ -120,7 +120,8 @@ function formatCurrency(value: number) {
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('calculator')
-  const [serviceIndex, setServiceIndex] = useState(0)
+  const [serviceIndex, setServiceIndex] = useState<number | 'custom'>(0)
+  const [customService, setCustomService] = useState('') // Novo estado para o texto livre
   const [complexity, setComplexity] = useState<Complexity>('Média')
   const [travelFee, setTravelFee] = useState('30')
   const [customer, setCustomer] = useState('')
@@ -130,13 +131,25 @@ export default function App() {
   const [filter, setFilter] = useState<'Todos' | Status>('Todos')
   const [toast, setToast] = useState('')
 
-  const selectedService = services[serviceIndex]
+  // Define o objeto do serviço ativo (seja da lista ou personalizado)
+  const currentServiceData = useMemo(() => {
+    if (serviceIndex === 'custom') {
+      const name = customService.trim() || 'Móvel personalizado'
+      return {
+        name: name,
+        shortName: name.toLowerCase(),
+        price: 100, // Preço base padrão para itens customizados
+      }
+    }
+    return services[serviceIndex]
+  }, [serviceIndex, customService])
+
   const total = useMemo(() => {
     const fee = Number(travelFee.replace(',', '.')) || 0
-    return Math.round(selectedService.price * multipliers[complexity] + fee)
-  }, [complexity, selectedService, travelFee])
+    return Math.round(currentServiceData.price * multipliers[complexity] + fee)
+  }, [complexity, currentServiceData, travelFee])
 
-  const message = `Olá ${customer || 'cliente'}, o orçamento para montagem do ${selectedService.shortName} ficou em ${formatCurrency(total)}. Podemos agendar?`
+  const message = `Olá ${customer || 'cliente'}, o orçamento para montagem do ${currentServiceData.shortName} ficou em ${formatCurrency(total)}. Podemos agendar?`
 
   // Buscar dados reais do FastAPI na inicialização
   const fetchHistoryAndTotal = async () => {
@@ -182,10 +195,10 @@ export default function App() {
 
       const payload = {
         cliente_nome: customer || 'Cliente Geral',
-        tipo_movel: selectedService.name,
+        tipo_movel: currentServiceData.name,
         quantidade_pecas: 5,
         complexidade: mapComplexity[complexity],
-        valor_base_hora: selectedService.price,
+        valor_base_hora: currentServiceData.price,
         taxa_deslocamento: Number(travelFee.replace(',', '.')) || 0,
       }
 
@@ -206,12 +219,10 @@ export default function App() {
       await api.atualizarStatus(id, newStatus)
       showToast(`Status alterado para ${newStatus}`)
       
-      // Atualiza o estado local do React instantaneamente
       setHistory(prev =>
         prev.map(item => (item.id === id ? { ...item, status: newStatus } : item))
       )
       
-      // Recarrega o resumo do mês para atualizar os totais do MEI
       await fetchHistoryAndTotal()
     } catch (err: any) {
       showToast(err.message || 'Erro ao atualizar status')
@@ -277,16 +288,43 @@ export default function App() {
                   <select
                     id="service"
                     value={serviceIndex}
-                    onChange={(event) => setServiceIndex(Number(event.target.value))}
+                    onChange={(event) => {
+                      const val = event.target.value
+                      setServiceIndex(val === 'custom' ? 'custom' : Number(val))
+                    }}
                   >
                     {services.map((service, index) => (
                       <option value={index} key={service.name}>{service.name}</option>
                     ))}
+                    <option value="custom">Outro (digitar modelo...)</option>
                   </select>
                   <span className="select-chevron"><Icon name="chevron" size={18} /></span>
                 </div>
 
-                <fieldset>
+                {/* Campo editável que aparece apenas se escolher "Outro" */}
+                {serviceIndex === 'custom' && (
+                  <div style={{ marginTop: '12px' }}>
+                    <label className="field-label" htmlFor="custom-input">Descrição do móvel</label>
+                    <input
+                      id="custom-input"
+                      type="text"
+                      placeholder="Ex: Cômoda 5 gavetas, Painel sob medida..."
+                      value={customService}
+                      onChange={(e) => setCustomService(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(0,0,0,0.15)',
+                        fontSize: '14px',
+                        outline: 'none',
+                      }}
+                      autoFocus
+                    />
+                  </div>
+                )}
+
+                <fieldset style={{ marginTop: '14px' }}>
                   <legend className="field-label">Complexidade</legend>
                   <div className="segmented">
                     {(['Simples', 'Média', 'Complexa'] as Complexity[]).map((item) => (
@@ -302,7 +340,7 @@ export default function App() {
                   </div>
                 </fieldset>
 
-                <label className="field-label" htmlFor="fee">Taxa de deslocamento</label>
+                <label className="field-label" htmlFor="fee" style={{ marginTop: '14px' }}>Taxa de deslocamento</label>
                 <div className="money-input">
                   <span>R$</span>
                   <input
@@ -334,7 +372,7 @@ export default function App() {
               <div className="success-mark"><Icon name="check" size={24} /></div>
               <p className="result-kicker">ORÇAMENTO PRONTO</p>
               <h1 className="result-total">{formatCurrency(total)}</h1>
-              <p className="result-subtitle">{selectedService.name} · {complexity}</p>
+              <p className="result-subtitle">{currentServiceData.name} · {complexity}</p>
 
               <div className="message-card">
                 <div className="message-top">
