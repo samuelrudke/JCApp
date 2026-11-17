@@ -1,0 +1,13 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    { "source": "/calculadora/(.*)", "destination": "/api/index.py" },
+    { "source": "/orcamentos", "destination": "/api/index.py" },
+    { "source": "/orcamentos/(.*)", "destination": "/api/index.py" },
+    { "source": "/gestao/(.*)", "destination": "/api/index.py" },
+    { "source": "/docs", "destination": "/api/index.py" },
+    { "source": "/openapi.json", "destination": "/api/index.py" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

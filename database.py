@@ -3,7 +3,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Configuração do banco SQLite local
-SQLALCHEMY_DATABASE_URL = "sqlite:///./jcapp.db"
+import os
+SQLALCHEMY_DATABASE_URL = "sqlite:////tmp/jcapp.db" if os.environ.get("VERCEL") else "sqlite:///./jcapp.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
